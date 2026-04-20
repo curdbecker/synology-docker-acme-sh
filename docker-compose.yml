@@ -1,0 +1,31 @@
+services:
+    acme:
+        image: neilpang/acme.sh
+        restart: always
+        command: daemon
+        network_mode: host
+        pid: host
+        privileged: true
+        volumes:
+          - acme:/acme.sh              # acme.sh state (account, configs)
+
+          # acme.sh can also be used to deploy certificates for other
+          # docker containers running on the Synology by simply mounting
+          # the docker daemon socket.
+          # - /var/run/docker.sock:/var/run/docker.sock
+
+          - ./in_host.sh:/usr/syno/sbin/synouser
+          - ./in_host.sh:/usr/syno/sbin/synogroup
+          - ./in_host.sh:/usr/syno/sbin/synosetkeyvalue
+          - ./in_host.sh:/usr/syno/bin/synogetkeyvalue
+
+        environment:
+          PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/syno/bin:/usr/syno/sbin
+          ACCOUNT_EMAIL: here.goes@your.mail
+          SYNO_USE_TEMP_ADMIN: 1
+          # add commonly used environment variables here, e.g. for
+          # configuring DNS challenges etc. to avoid to have them repeated
+          # whenever issuing a new certificate.
+
+volumes:
+    acme:
