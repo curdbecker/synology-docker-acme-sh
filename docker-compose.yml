@@ -14,10 +14,21 @@ services:
           # the docker daemon socket.
           # - /var/run/docker.sock:/var/run/docker.sock
 
-          - ./in_host.sh:/usr/syno/sbin/synouser
-          - ./in_host.sh:/usr/syno/sbin/synogroup
-          - ./in_host.sh:/usr/syno/sbin/synosetkeyvalue
-          - ./in_host.sh:/usr/syno/bin/synogetkeyvalue
+          # simple helper script to deal with the annoying issue in a similar
+          # style as before by wrapping chmod and ssh in a helper script that
+          # transparently replaces ssh. Synology does not support arbitrary
+          # unix permissions that SSH needs when bind-mounting configs and keys
+          # from a Synology volume. I highly suspect that Synology just modified
+          # chmod to prevent users from changing permissions, since BTRFS
+          # obviously supports them and from a privileged container chmod  works
+          # perfectly... This is a rather crude but effective fix to ensure
+          # that a potential permission reset will not prevent ssh from working.
+          - ./fix_perms_and_ssh.sh:/usr/local/bin/ssh:ro
+
+          - ./in_host.sh:/usr/syno/sbin/synouser:ro
+          - ./in_host.sh:/usr/syno/sbin/synogroup:ro
+          - ./in_host.sh:/usr/syno/sbin/synosetkeyvalue:ro
+          - ./in_host.sh:/usr/syno/bin/synogetkeyvalue:ro
 
         environment:
           PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/syno/bin:/usr/syno/sbin
